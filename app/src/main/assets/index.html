@@ -2,19 +2,1124 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MORETA APP</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000">
+<title>MORETA PHONE</title>
 <style>
-body{background:#040810;color:#e6edf7;font:14px system-ui;
-padding:20px;margin:0}
-h1{color:#60a5fa}
-button{width:100%;padding:14px;margin:10px 0;border:0;border-radius:10px;
-background:#3b82f6;color:#fff;font:600 14px system-ui;cursor:pointer}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+:root{
+  --bg:#000;--card:#0a0e17;--line:#1a2538;--blue:#3b82f6;--txt:#e6edf7;
+  --dim:#6b7a99;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+font:14px/1.4 system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+
+/* ============ LOCK SCREEN ============ */
+#lock{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+background:linear-gradient(160deg,#0a1a35 0%,#040810 60%,#000 100%);
+transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .5s}
+#lock.hide{transform:translateY(-100%);opacity:0;pointer-events:none}
+.lock-widget{padding:60px 30px 0;text-align:center}
+.lock-time{font-size:64px;font-weight:200;letter-spacing:-2px;line-height:1}
+.lock-date{font-size:15px;color:var(--dim);margin-top:8px;letter-spacing:.5px}
+.lock-weather{position:absolute;top:80px;right:30px;text-align:right;font-size:13px;color:var(--dim)}
+.lock-weather b{display:block;font-size:22px;color:#bfdbfe;font-weight:300}
+.lock-notif{position:absolute;top:200px;left:30px;right:30px;display:flex;flex-direction:column;gap:8px}
+.notif{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);
+padding:12px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.08);
+display:flex;gap:10px;align-items:center}
+.notif .ic{width:32px;height:32px;border-radius:8px;background:var(--blue);
+display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.notif .tx{flex:1;min-width:0}
+.notif .tx b{display:block;font-size:13px;font-weight:600}
+.notif .tx p{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lock-hint{position:absolute;bottom:50px;left:0;right:0;text-align:center;
+color:var(--dim);font-size:12px;letter-spacing:.3em;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.lock-swipe{position:absolute;bottom:0;left:0;right:0;height:120px;
+display:flex;align-items:flex-end;justify-content:center;padding-bottom:30px}
+.lock-swipe .bar{width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,.4)}
+
+/* ============ STATUS BAR ============ */
+#status{position:fixed;top:0;left:0;right:0;height:36px;z-index:50;
+display:flex;align-items:center;justify-content:space-between;
+padding:0 20px;font-size:12px;font-weight:600;pointer-events:none;
+text-shadow:0 1px 3px rgba(0,0,0,.8)}
+#status .left{display:flex;gap:8px;align-items:center}
+#status .right{display:flex;gap:6px;align-items:center}
+#status .batt{display:flex;align-items:center;gap:4px}
+#status .batt-icon{width:22px;height:11px;border:1.5px solid currentColor;
+border-radius:3px;position:relative}
+#status .batt-icon::after{content:"";position:absolute;left:1.5px;top:1.5px;
+bottom:1.5px;width:calc(var(--pct,80) * 0.19px);background:currentColor;border-radius:1px}
+#status .batt-icon::before{content:"";position:absolute;right:-4px;top:3px;
+width:2px;height:5px;background:currentColor;border-radius:0 1px 1px 0}
+
+/* ============ HOME ============ */
+#home{position:fixed;inset:0;padding-top:36px;
+background:linear-gradient(160deg,#0a1a35 0%,#040810 60%,#000 100%);
+display:flex;flex-direction:column;overflow:hidden}
+.wall-glow{position:absolute;top:-100px;left:-100px;width:400px;height:400px;
+background:radial-gradient(circle,rgba(59,130,246,.3),transparent 70%);
+filter:blur(60px);pointer-events:none}
+.wall-glow.b{top:auto;left:auto;right:-100px;bottom:-100px;
+background:radial-gradient(circle,rgba(16,185,129,.2),transparent 70%)}
+
+.home-page{flex:1;padding:20px;overflow-y:auto;display:grid;
+grid-template-columns:repeat(4,1fr);gap:20px 12px;
+align-content:start;position:relative;z-index:2}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px;
+cursor:pointer;transition:transform .12s;padding:4px}
+.app:active{transform:scale(.88)}
+.app .icon{width:56px;height:56px;border-radius:16px;
+display:flex;align-items:center;justify-content:center;
+font-size:26px;box-shadow:0 6px 20px -6px rgba(0,0,0,.6),
+  0 0 0 1px rgba(255,255,255,.06) inset;
+position:relative;overflow:hidden}
+.app .icon::after{content:"";position:absolute;inset:0;
+background:linear-gradient(160deg,rgba(255,255,255,.2),transparent 60%)}
+.app .label{font-size:11px;color:#e6edf7;text-align:center;
+max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+text-shadow:0 1px 2px rgba(0,0,0,.9)}
+.app.blue .icon{background:linear-gradient(160deg,#3b82f6,#1d4ed8)}
+.app.green .icon{background:linear-gradient(160deg,#10b981,#059669)}
+.app.red .icon{background:linear-gradient(160deg,#ef4444,#b91c1c)}
+.app.yellow .icon{background:linear-gradient(160deg,#f59e0b,#d97706)}
+.app.purple .icon{background:linear-gradient(160deg,#a855f7,#7e22ce)}
+.app.pink .icon{background:linear-gradient(160deg,#ec4899,#be185d)}
+.app.cyan .icon{background:linear-gradient(160deg,#06b6d4,#0891b2)}
+.app.gray .icon{background:linear-gradient(160deg,#475569,#1e293b)}
+
+.dock{margin:0 16px 20px;padding:14px;
+background:rgba(255,255,255,.06);backdrop-filter:blur(30px);
+border-radius:26px;display:grid;grid-template-columns:repeat(4,1fr);
+gap:12px;border:1px solid rgba(255,255,255,.06);
+position:relative;z-index:2}
+.dock .app .label{display:none}
+.dock .app .icon{width:54px;height:54px}
+
+.page-dots{display:flex;justify-content:center;gap:6px;
+margin-bottom:14px;position:relative;z-index:2}
+.page-dots span{width:6px;height:6px;border-radius:3px;
+background:rgba(255,255,255,.3);transition:all .3s}
+.page-dots span.on{width:20px;background:#fff}
+
+/* ============ APP WINDOW ============ */
+#app-window{position:fixed;inset:0;z-index:200;background:var(--bg);
+display:none;flex-direction:column;
+transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+#app-window.on{display:flex;transform:translateY(0)}
+#app-window .app-bar{padding:50px 20px 14px;display:flex;align-items:center;
+gap:12px;border-bottom:1px solid var(--line);
+background:linear-gradient(180deg,rgba(59,130,246,.08),transparent)}
+#app-window .app-bar .back{width:36px;height:36px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+background:rgba(255,255,255,.06);cursor:pointer;font-size:18px}
+#app-window .app-bar .back:active{background:rgba(255,255,255,.12)}
+#app-window .app-bar h2{font-size:17px;font-weight:600;flex:1}
+#app-window .app-body{flex:1;overflow-y:auto;padding:20px}
+
+/* ============ CLOCK APP ============ */
+.clock-big{text-align:center;padding:40px 0}
+.clock-big .t{font-size:72px;font-weight:100;letter-spacing:-3px}
+.clock-big .d{font-size:14px;color:var(--dim);margin-top:8px}
+
+/* ============ CALCULATOR ============ */
+.calc{padding:20px}
+.calc-display{background:#000;padding:24px;border-radius:16px;
+font-size:36px;font-weight:300;text-align:right;
+min-height:100px;overflow:hidden;color:#fff;margin-bottom:16px;
+display:flex;flex-direction:column;justify-content:flex-end}
+.calc-display small{font-size:14px;color:var(--dim);
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+min-height:18px;display:block}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.calc-grid button{padding:22px 0;font-size:20px;font-weight:500;
+border:0;border-radius:14px;background:#1a2538;color:#fff;cursor:pointer;
+transition:opacity .15s}
+.calc-grid button:active{opacity:.7}
+.calc-grid button.op{background:#3b82f6}
+.calc-grid button.eq{background:var(--green)}
+.calc-grid button.fn{background:#475569}
+.calc-grid button.wide{grid-column:span 2}
+
+/* ============ NOTES ============ */
+.notes textarea{width:100%;min-height:180px;padding:16px;
+background:var(--card);border:1px solid var(--line);border-radius:12px;
+color:var(--txt);font:13px monospace;outline:none;resize:vertical;line-height:1.6}
+.notes .row{display:flex;gap:8px;margin-top:12px}
+.notes .row button{flex:1;padding:12px;border:0;border-radius:10px;
+font:600 13px system-ui;cursor:pointer}
+.notes .save{background:var(--green);color:#fff}
+.notes .del{background:var(--red);color:#fff}
+.notes .list{margin-top:20px}
+.notes .item{padding:12px;background:var(--card);border:1px solid var(--line);
+border-radius:10px;margin-bottom:8px;font-size:12px;
+display:flex;justify-content:space-between;gap:8px}
+.notes .item .txt{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notes .item .del{color:var(--red);cursor:pointer;font-weight:700}
+
+/* ============ CALENDAR ============ */
+.cal-head{display:flex;justify-content:space-between;align-items:center;
+margin-bottom:16px}
+.cal-head button{background:rgba(255,255,255,.06);border:0;
+color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px}
+.cal-head h3{font-size:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;
+text-align:center}
+.cal-grid .dow{font-size:10px;color:var(--dim);padding:6px 0;font-weight:600}
+.cal-grid .day{padding:10px 0;font-size:13px;border-radius:10px;cursor:pointer;
+transition:background .15s}
+.cal-grid .day.today{background:var(--blue);color:#fff;font-weight:700}
+.cal-grid .day.empty{opacity:0}
+.cal-grid .day:active{background:rgba(255,255,255,.1)}
+
+/* ============ WEATHER ============ */
+.weather{padding:20px 0}
+.weather .big{text-align:center;padding:20px 0 30px}
+.weather .big .ico{font-size:80px;line-height:1}
+.weather .big .temp{font-size:64px;font-weight:200;letter-spacing:-3px;
+margin-top:8px}
+.weather .big .desc{font-size:14px;color:var(--dim);margin-top:4px}
+.weather .row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+margin-top:20px}
+.weather .cell{background:var(--card);border:1px solid var(--line);
+padding:14px 8px;border-radius:12px;text-align:center}
+.weather .cell small{font-size:10px;color:var(--dim);display:block;
+text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.weather .cell b{font-size:15px}
+
+/* ============ BROWSER ============ */
+.browser{padding:0;height:100%;display:flex;flex-direction:column}
+.browser .bar{padding:12px;background:var(--card);border-bottom:1px solid var(--line);
+display:flex;gap:8px}
+.browser input{flex:1;padding:10px 14px;background:#000;border:1px solid var(--line);
+border-radius:20px;color:var(--txt);font:13px monospace;outline:none}
+.browser .go{padding:10px 16px;border:0;border-radius:20px;background:var(--blue);
+color:#fff;font-weight:600;cursor:pointer}
+.browser iframe{flex:1;border:0;background:#fff}
+
+/* ============ CAMERA ============ */
+.camera{padding:0;height:100%;position:relative;background:#000;
+display:flex;flex-direction:column}
+.camera video{flex:1;width:100%;object-fit:cover;background:#000}
+.camera .ctrl{padding:20px;display:flex;justify-content:center;gap:20px;
+background:#000}
+.camera .shutter{width:70px;height:70px;border-radius:50%;background:#fff;
+border:4px solid rgba(255,255,255,.3);cursor:pointer;
+box-shadow:0 0 0 4px rgba(0,0,0,.6)}
+.camera .shutter:active{transform:scale(.94)}
+.camera .msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+color:var(--dim);text-align:center;font-size:13px;padding:20px;max-width:80%}
+
+/* ============ GALLERY ============ */
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gallery .ph{aspect-ratio:1;background:#000;border-radius:8px;overflow:hidden;
+position:relative;cursor:pointer;border:1px solid var(--line)}
+.gallery .ph img{width:100%;height:100%;object-fit:cover}
+.gallery .ph .del{position:absolute;top:4px;right:4px;width:22px;height:22px;
+background:rgba(239,68,68,.9);border-radius:50%;color:#fff;
+font-size:12px;display:flex;align-items:center;justify-content:center;
+border:0;cursor:pointer;font-weight:700}
+.gallery .empty{grid-column:span 3;text-align:center;padding:60px 20px;
+color:var(--dim);font-size:13px}
+
+/* ============ FILES ============ */
+.files .row{padding:14px;background:var(--card);border:1px solid var(--line);
+border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;
+align-items:center;font-size:12px;font-family:monospace}
+.files .row .name{color:var(--blue);flex:1;word-break:break-all}
+.files .row .size{color:var(--dim);margin-left:12px;white-space:nowrap}
+.files .row .del{background:none;border:0;color:var(--red);cursor:pointer;
+font-size:16px;padding:4px 8px;font-weight:700}
+
+/* ============ STOPWATCH ============ */
+.stopwatch{text-align:center;padding:40px 20px}
+.stopwatch .time{font-size:56px;font-weight:200;font-family:monospace;
+letter-spacing:-2px}
+.stopwatch .btn-row{display:flex;gap:12px;margin-top:30px;justify-content:center}
+.stopwatch button{padding:14px 32px;border:0;border-radius:12px;
+font:600 14px system-ui;cursor:pointer;color:#fff}
+.stopwatch .start{background:var(--green)}
+.stopwatch .stop{background:var(--red)}
+.stopwatch .reset{background:#475569}
+.stopwatch .laps{margin-top:24px;text-align:left}
+.stopwatch .lap{padding:10px 14px;background:var(--card);border-radius:8px;
+margin-bottom:6px;font-family:monospace;font-size:12px;
+display:flex;justify-content:space-between}
+
+/* ============ TIMER ============ */
+.timer{text-align:center;padding:30px 20px}
+.timer .time{font-size:56px;font-weight:200;font-family:monospace;
+letter-spacing:-2px;margin-bottom:20px}
+.timer input{width:100px;padding:12px;background:var(--card);
+border:1px solid var(--line);border-radius:10px;color:var(--txt);
+font-size:20px;text-align:center;margin:0 4px;outline:none}
+.timer .row{margin-bottom:20px;display:flex;justify-content:center;align-items:center;gap:6px}
+.timer .btns{display:flex;gap:12px;justify-content:center}
+.timer button{padding:14px 32px;border:0;border-radius:12px;
+font:600 14px system-ui;cursor:pointer;color:#fff}
+.timer .start{background:var(--green)}
+.timer .stop{background:var(--red)}
+
+/* ============ SETTINGS ============ */
+.settings .sec{font-size:11px;color:var(--dim);text-transform:uppercase;
+letter-spacing:1px;margin:20px 0 10px;padding-left:4px}
+.settings .row{background:var(--card);border:1px solid var(--line);
+padding:14px 16px;border-radius:12px;margin-bottom:8px;
+display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.settings .sw{width:48px;height:28px;background:#1a2538;border-radius:14px;
+position:relative;cursor:pointer;transition:background .2s}
+.settings .sw.on{background:var(--blue)}
+.settings .sw::after{content:"";position:absolute;top:3px;left:3px;
+width:22px;height:22px;background:#fff;border-radius:50%;
+transition:left .2s}
+.settings .sw.on::after{left:23px}
+.settings .about{text-align:center;padding:30px 20px;color:var(--dim);
+font-size:12px;line-height:1.8}
+.settings .about b{color:var(--txt);font-size:14px;display:block;
+margin-bottom:6px;letter-spacing:.1em}
+
+/* ============ MUSIC ============ */
+.music{padding:20px}
+.music .art{width:100%;aspect-ratio:1;border-radius:20px;
+background:linear-gradient(135deg,#3b82f6,#a855f7,#ec4899);
+margin-bottom:20px;box-shadow:0 20px 60px -20px rgba(59,130,246,.6);
+display:flex;align-items:center;justify-content:center;font-size:80px;
+animation:artPulse 4s ease-in-out infinite}
+@keyframes artPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+.music h3{text-align:center;font-size:18px;margin-bottom:4px}
+.music .sub{text-align:center;color:var(--dim);font-size:12px;margin-bottom:20px}
+.music .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.music .key{aspect-ratio:1;background:var(--card);border:1px solid var(--line);
+border-radius:12px;display:flex;align-items:center;justify-content:center;
+font:600 16px system-ui;cursor:pointer;transition:all .1s}
+.music .key:active{background:var(--blue);transform:scale(.94)}
+.music .key.hi{background:rgba(59,130,246,.15);color:var(--blue)}
+
+/* ============ COMMON ============ */
+.center{display:flex;align-items:center;justify-content:center;
+flex-direction:column;text-align:center;padding:40px 20px;height:100%;
+color:var(--dim);font-size:13px;gap:12px}
+.center .big{font-size:64px;opacity:.5}
+.btn{padding:12px 20px;border:0;border-radius:10px;background:var(--blue);
+color:#fff;font:600 13px system-ui;cursor:pointer;transition:opacity .15s}
+.btn:active{opacity:.75}
+.green{background:var(--green)}
+.red{background:var(--red)}
 </style>
 </head>
 <body>
-<h1>MORETA APP</h1>
-<p>Aplikasi berjalan sebagai APK.</p>
-<button onclick="alert('Halo')">Test</button>
+
+<!-- ============ STATUS BAR ============ -->
+<div id="status">
+  <div class="left">
+    <span id="st-time">--:--</span>
+  </div>
+  <div class="right">
+    <span>●●●</span>
+    <span>📶</span>
+    <span class="batt">
+      <span id="st-batt">80</span>
+      <span class="batt-icon" style="--pct:80"></span>
+    </span>
+  </div>
+</div>
+
+<!-- ============ LOCK SCREEN ============ -->
+<div id="lock" onclick="unlock()">
+  <div class="lock-widget">
+    <div class="lock-time" id="lk-time">--:--</div>
+    <div class="lock-date" id="lk-date">---</div>
+  </div>
+  <div class="lock-weather">
+    ☀ <b>28°</b>
+    Jakarta
+  </div>
+  <div class="lock-notif">
+    <div class="notif">
+      <div class="ic">💬</div>
+      <div class="tx">
+        <b>MORETA PHONE</b>
+        <p>Selamat datang · tap untuk buka</p>
+      </div>
+    </div>
+    <div class="notif">
+      <div class="ic" style="background:var(--green)">🔋</div>
+      <div class="tx">
+        <b>Sistem</b>
+        <p>Baterai 80% · pengisian normal</p>
+      </div>
+    </div>
+  </div>
+  <div class="lock-swipe">
+    <div class="bar"></div>
+  </div>
+  <div class="lock-hint">TAP UNTUK BUKA</div>
+</div>
+
+<!-- ============ HOME SCREEN ============ -->
+<div id="home" style="display:none">
+  <div class="wall-glow"></div>
+  <div class="wall-glow b"></div>
+
+  <div class="home-page">
+    <!-- Row 1 -->
+    <div class="app" onclick="openApp('clock')">
+      <div class="icon" style="background:linear-gradient(160deg,#1e293b,#0f172a)">
+        <span>🕐</span>
+      </div>
+      <div class="label">Jam</div>
+    </div>
+    <div class="app green" onclick="openApp('calc')">
+      <div class="icon"><span>🔢</span></div>
+      <div class="label">Kalkulator</div>
+    </div>
+    <div class="app yellow" onclick="openApp('notes')">
+      <div class="icon"><span>📝</span></div>
+      <div class="label">Catatan</div>
+    </div>
+    <div class="app red" onclick="openApp('calendar')">
+      <div class="icon"><span>📅</span></div>
+      <div class="label">Kalender</div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="app cyan" onclick="openApp('weather')">
+      <div class="icon"><span>☀️</span></div>
+      <div class="label">Cuaca</div>
+    </div>
+    <div class="app blue" onclick="openApp('browser')">
+      <div class="icon"><span>🌐</span></div>
+      <div class="label">Browser</div>
+    </div>
+    <div class="app purple" onclick="openApp('camera')">
+      <div class="icon"><span>📷</span></div>
+      <div class="label">Kamera</div>
+    </div>
+    <div class="app pink" onclick="openApp('gallery')">
+      <div class="icon"><span>🖼️</span></div>
+      <div class="label">Galeri</div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="app gray" onclick="openApp('files')">
+      <div class="icon"><span>📁</span></div>
+      <div class="label">Berkas</div>
+    </div>
+    <div class="app green" onclick="openApp('stopwatch')">
+      <div class="icon"><span>⏱️</span></div>
+      <div class="label">Stopwatch</div>
+    </div>
+    <div class="app yellow" onclick="openApp('timer')">
+      <div class="icon"><span>⏳</span></div>
+      <div class="label">Timer</div>
+    </div>
+    <div class="app cyan" onclick="openApp('music')">
+      <div class="icon"><span>🎵</span></div>
+      <div class="label">Musik</div>
+    </div>
+
+    <!-- Row 4 -->
+    <div class="app gray" onclick="openApp('settings')">
+      <div class="icon"><span>⚙️</span></div>
+      <div class="label">Setelan</div>
+    </div>
+    <div class="app blue" onclick="openApp('info')">
+      <div class="icon"><span>ℹ️</span></div>
+      <div class="label">Info</div>
+    </div>
+  </div>
+
+  <div class="page-dots">
+    <span class="on"></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <div class="dock">
+    <div class="app" onclick="openApp('clock')">
+      <div class="icon" style="background:linear-gradient(160deg,#1e293b,#0f172a)">
+        <span>🕐</span>
+      </div>
+    </div>
+    <div class="app green" onclick="openApp('calc')">
+      <div class="icon"><span>🔢</span></div>
+    </div>
+    <div class="app blue" onclick="openApp('browser')">
+      <div class="icon"><span>🌐</span></div>
+    </div>
+    <div class="app gray" onclick="openApp('settings')">
+      <div class="icon"><span>⚙️</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP WINDOW ============ -->
+<div id="app-window">
+  <div class="app-bar">
+    <div class="back" onclick="closeApp()">‹</div>
+    <h2 id="app-title">App</h2>
+  </div>
+  <div class="app-body" id="app-body"></div>
+</div>
+
+<script>
+/* ==================== CLOCK ==================== */
+function updateClock(){
+  var d = new Date();
+  var hh = String(d.getHours()).padStart(2,'0');
+  var mm = String(d.getMinutes()).padStart(2,'0');
+  var t = hh + ':' + mm;
+  var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var months = ['Januari','Februari','Maret','April','Mei','Juni',
+                'Juli','Agustus','September','Oktober','November','Desember'];
+  var dt = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()];
+
+  var lkTime = document.getElementById('lk-time');
+  var lkDate = document.getElementById('lk-date');
+  var stTime = document.getElementById('st-time');
+  if(lkTime) lkTime.textContent = t;
+  if(lkDate) lkDate.textContent = dt;
+  if(stTime) stTime.textContent = t;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ==================== BATTERY ==================== */
+if(navigator.getBattery){
+  navigator.getBattery().then(function(b){
+    function upd(){
+      var pct = Math.round(b.level * 100);
+      var el = document.getElementById('st-batt');
+      var ic = document.querySelector('.batt-icon');
+      if(el) el.textContent = pct;
+      if(ic) ic.style.setProperty('--pct', pct);
+    }
+    upd();
+    b.addEventListener('levelchange', upd);
+  });
+}
+
+/* ==================== LOCK / HOME ==================== */
+function unlock(){
+  document.getElementById('lock').classList.add('hide');
+  setTimeout(function(){
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('home').style.display = 'flex';
+  }, 500);
+}
+
+/* ==================== APP ROUTER ==================== */
+var currentApp = null;
+
+function openApp(id){
+  var win = document.getElementById('app-window');
+  var title = document.getElementById('app-title');
+  var body = document.getElementById('app-body');
+
+  currentApp = id;
+  body.innerHTML = '';
+  body.scrollTop = 0;
+
+  var apps = {
+    clock: {title:'Jam', render:renderClock},
+    calc: {title:'Kalkulator', render:renderCalc},
+    notes: {title:'Catatan', render:renderNotes},
+    calendar: {title:'Kalender', render:renderCalendar},
+    weather: {title:'Cuaca', render:renderWeather},
+    browser: {title:'Browser', render:renderBrowser},
+    camera: {title:'Kamera', render:renderCamera},
+    gallery: {title:'Galeri', render:renderGallery},
+    files: {title:'Berkas', render:renderFiles},
+    stopwatch: {title:'Stopwatch', render:renderStopwatch},
+    timer: {title:'Timer', render:renderTimer},
+    music: {title:'Musik', render:renderMusic},
+    settings: {title:'Setelan', render:renderSettings},
+    info: {title:'Info', render:renderInfo}
+  };
+
+  var app = apps[id];
+  if(!app){ body.innerHTML = '<div class="center">App tidak dikenal</div>'; return; }
+  title.textContent = app.title;
+  app.render(body);
+  win.classList.add('on');
+}
+
+function closeApp(){
+  document.getElementById('app-window').classList.remove('on');
+  currentApp = null;
+  // stop camera / timer if running
+  if(window._camStream){
+    window._camStream.getTracks().forEach(function(t){ t.stop(); });
+    window._camStream = null;
+  }
+}
+
+/* ==================== APP: CLOCK ==================== */
+function renderClock(b){
+  function tick(){
+    var d = new Date();
+    var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    var months = ['Januari','Februari','Maret','April','Mei','Juni',
+                  'Juli','Agustus','September','Oktober','November','Desember'];
+    var t = String(d.getHours()).padStart(2,'0') + ':' +
+            String(d.getMinutes()).padStart(2,'0') + ':' +
+            String(d.getSeconds()).padStart(2,'0');
+    var dt = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    var el1 = document.getElementById('clk-t');
+    var el2 = document.getElementById('clk-d');
+    if(el1) el1.textContent = t;
+    if(el2) el2.textContent = dt;
+  }
+  b.innerHTML =
+    '<div class="clock-big">' +
+    '<div class="t" id="clk-t">--:--:--</div>' +
+    '<div class="d" id="clk-d">---</div>' +
+    '</div>';
+  tick();
+  if(window._clkInt) clearInterval(window._clkInt);
+  window._clkInt = setInterval(tick, 1000);
+}
+
+/* ==================== APP: CALCULATOR ==================== */
+function renderCalc(b){
+  b.innerHTML =
+    '<div class="calc">' +
+    '<div class="calc-display"><small id="c-hist"></small><div id="c-disp">0</div></div>' +
+    '<div class="calc-grid">' +
+    '<button class="fn" onclick="cSet(\'C\')">C</button>' +
+    '<button class="fn" onclick="cSet(\'±\')">±</button>' +
+    '<button class="fn" onclick="cSet(\'%\')">%</button>' +
+    '<button class="op" onclick="cSet(\'/\')">÷</button>' +
+    '<button onclick="cSet(\'7\')">7</button>' +
+    '<button onclick="cSet(\'8\')">8</button>' +
+    '<button onclick="cSet(\'9\')">9</button>' +
+    '<button class="op" onclick="cSet(\'*\')">×</button>' +
+    '<button onclick="cSet(\'4\')">4</button>' +
+    '<button onclick="cSet(\'5\')">5</button>' +
+    '<button onclick="cSet(\'6\')">6</button>' +
+    '<button class="op" onclick="cSet(\'-\')">−</button>' +
+    '<button onclick="cSet(\'1\')">1</button>' +
+    '<button onclick="cSet(\'2\')">2</button>' +
+    '<button onclick="cSet(\'3\')">3</button>' +
+    '<button class="op" onclick="cSet(\'+\')">+</button>' +
+    '<button class="wide" onclick="cSet(\'0\')">0</button>' +
+    '<button onclick="cSet(\'.\')">.</button>' +
+    '<button class="eq" onclick="cSet(\'=\')">=</button>' +
+    '</div>' +
+    '</div>';
+  window._c = {cur:'0', prev:null, op:null, fresh:true};
+  cUpdate();
+}
+function cUpdate(){
+  var d = document.getElementById('c-disp');
+  var h = document.getElementById('c-hist');
+  if(!d) return;
+  d.textContent = window._c.cur;
+  if(h) h.textContent = (window._c.prev !== null ? window._c.prev + ' ' + (window._c.op||'') : '');
+}
+function cSet(k){
+  var c = window._c;
+  if(!c) return;
+  if(k === 'C'){ c.cur='0'; c.prev=null; c.op=null; c.fresh=true; cUpdate(); return; }
+  if(k === '±'){ c.cur = c.cur.startsWith('-') ? c.cur.slice(1) : '-'+c.cur; cUpdate(); return; }
+  if(k === '%'){ c.cur = String(parseFloat(c.cur)/100); cUpdate(); return; }
+  if(k === '.'){ if(c.fresh){ c.cur='0.'; c.fresh=false; } else if(!c.cur.includes('.')) c.cur+='.'; cUpdate(); return; }
+  if('0123456789'.includes(k)){
+    if(c.fresh){ c.cur = k; c.fresh = false; }
+    else c.cur = (c.cur === '0' ? k : c.cur + k);
+    cUpdate(); return;
+  }
+  if('+-*/'.includes(k)){
+    if(c.op && !c.fresh){
+      var r = cCalc(c.prev, c.cur, c.op);
+      c.cur = String(r); c.prev = String(r);
+    } else {
+      c.prev = c.cur;
+    }
+    c.op = k; c.fresh = true; cUpdate(); return;
+  }
+  if(k === '='){
+    if(c.op){
+      var r2 = cCalc(c.prev, c.cur, c.op);
+      c.cur = String(r2); c.prev = null; c.op = null; c.fresh = true; cUpdate();
+    }
+  }
+}
+function cCalc(a, b, op){
+  a = parseFloat(a); b = parseFloat(b);
+  if(op === '+') return a + b;
+  if(op === '-') return a - b;
+  if(op === '*') return a * b;
+  if(op === '/') return b === 0 ? 0 : a / b;
+  return b;
+}
+
+/* ==================== APP: NOTES ==================== */
+function renderNotes(b){
+  b.innerHTML =
+    '<div class="notes">' +
+    '<textarea id="n-in" placeholder="Tulis catatan..."></textarea>' +
+    '<div class="row">' +
+    '<button class="save" onclick="nSave()">💾 Simpan</button>' +
+    '<button class="del" onclick="nClearInput()">🗑️ Bersihkan</button>' +
+    '</div>' +
+    '<div class="list" id="n-list"></div>' +
+    '</div>';
+  nRender();
+}
+function nSave(){
+  var v = document.getElementById('n-in').value.trim();
+  if(!v) return;
+  var list = JSON.parse(localStorage.getItem('moreta_notes') || '[]');
+  list.unshift({t: Date.now(), v: v});
+  if(list.length > 50) list = list.slice(0, 50);
+  localStorage.setItem('moreta_notes', JSON.stringify(list));
+  document.getElementById('n-in').value = '';
+  nRender();
+}
+function nClearInput(){ document.getElementById('n-in').value = ''; }
+function nRender(){
+  var list = JSON.parse(localStorage.getItem('moreta_notes') || '[]');
+  var el = document.getElementById('n-list');
+  if(!el) return;
+  if(!list.length){ el.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px;font-size:12px">Belum ada catatan</div>'; return; }
+  el.innerHTML = list.map(function(n, i){
+    return '<div class="item">' +
+      '<span class="txt">' + esc(n.v.slice(0,60)) + '</span>' +
+      '<span class="del" onclick="nDel(' + i + ')">×</span>' +
+      '</div>';
+  }).join('');
+}
+function nDel(i){
+  var list = JSON.parse(localStorage.getItem('moreta_notes') || '[]');
+  list.splice(i, 1);
+  localStorage.setItem('moreta_notes', JSON.stringify(list));
+  nRender();
+}
+
+/* ==================== APP: CALENDAR ==================== */
+var _calMonth = new Date().getMonth();
+var _calYear = new Date().getFullYear();
+function renderCalendar(b){
+  b.innerHTML = '<div id="cal-root"></div>';
+  calDraw();
+}
+function calDraw(){
+  var el = document.getElementById('cal-root');
+  if(!el) return;
+  var months = ['Januari','Februari','Maret','April','Mei','Juni',
+                'Juli','Agustus','September','Oktober','November','Desember'];
+  var today = new Date();
+  var first = new Date(_calYear, _calMonth, 1);
+  var lastDay = new Date(_calYear, _calMonth + 1, 0).getDate();
+  var startDow = first.getDay();
+
+  var html = '<div class="cal-head">' +
+    '<button onclick="calNav(-1)">‹</button>' +
+    '<h3>' + months[_calMonth] + ' ' + _calYear + '</h3>' +
+    '<button onclick="calNav(1)">›</button>' +
+    '</div>' +
+    '<div class="cal-grid">';
+  ['S','S','R','K','J','S','M'].forEach(function(d){
+    html += '<div class="dow">' + d + '</div>';
+  });
+  // Indonesian layout: Min Sen Sel Rab Kam Jum Sab
+  var dows = ['M','S','S','R','K','J','S'];
+  for(var i = 0; i < startDow; i++) html += '<div class="day empty"></div>';
+  for(var d = 1; d <= lastDay; d++){
+    var isToday = (d === today.getDate() && _calMonth === today.getMonth() && _calYear === today.getFullYear());
+    html += '<div class="day' + (isToday ? ' today' : '') + '">' + d + '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+function calNav(d){
+  _calMonth += d;
+  if(_calMonth < 0){ _calMonth = 11; _calYear--; }
+  if(_calMonth > 11){ _calMonth = 0; _calYear++; }
+  calDraw();
+}
+
+/* ==================== APP: WEATHER ==================== */
+function renderWeather(b){
+  var temps = [22,24,26,25,23,24,26];
+  var days = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+  var today = new Date().getDay();
+  b.innerHTML =
+    '<div class="weather">' +
+    '<div class="big">' +
+    '<div class="ico">☀️</div>' +
+    '<div class="temp">28°</div>' +
+    '<div class="desc">Cerah · Jakarta</div>' +
+    '</div>' +
+    '<div class="row">' +
+    temps.map(function(t, i){
+      var d = days[(today + i) % 7];
+      return '<div class="cell"><small>' + d + '</small><b>' + t + '°</b></div>';
+    }).join('') +
+    '</div>' +
+    '<div style="margin-top:20px;font-size:12px;color:var(--dim);text-align:center">' +
+    'Kelembapan 65% · Angin 12 km/j · UV rendah' +
+    '</div>' +
+    '</div>';
+}
+
+/* ==================== APP: BROWSER ==================== */
+function renderBrowser(b){
+  b.innerHTML =
+    '<div class="browser">' +
+    '<div class="bar">' +
+    '<input id="b-url" placeholder="https://..." value="https://example.com" ' +
+    'onkeydown="if(event.key===\'Enter\')bGo()">' +
+    '<button class="go" onclick="bGo()">→</button>' +
+    '</div>' +
+    '<iframe id="b-frame" src="about:blank" ' +
+    'sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>' +
+    '</div>';
+}
+function bGo(){
+  var u = document.getElementById('b-url').value.trim();
+  if(!u) return;
+  if(!/^https?:/.test(u)) u = 'https://' + u;
+  document.getElementById('b-frame').src = u;
+}
+
+/* ==================== APP: CAMERA ==================== */
+function renderCamera(b){
+  b.innerHTML =
+    '<div class="camera">' +
+    '<video id="cam-v" autoplay playsinline muted></video>' +
+    '<div class="ctrl">' +
+    '<button class="shutter" onclick="camSnap()"></button>' +
+    '</div>' +
+    '<div class="msg" id="cam-msg">Meminta izin kamera...</div>' +
+    '</div>';
+  navigator.mediaDevices.getUserMedia({video: {facingMode: 'user'}, audio: false})
+    .then(function(s){
+      window._camStream = s;
+      var v = document.getElementById('cam-v');
+      if(v){ v.srcObject = s; }
+      var m = document.getElementById('cam-msg');
+      if(m) m.style.display = 'none';
+    })
+    .catch(function(e){
+      var m = document.getElementById('cam-msg');
+      if(m) m.innerHTML = 'Kamera tidak tersedia.<br><br>' +
+        'Izin: ' + e.name + '<br>' +
+        'Buka Setelan Android → Apps → MORETA PHONE → Permissions → Camera → Allow.';
+    });
+}
+function camSnap(){
+  var v = document.getElementById('cam-v');
+  if(!v || !v.videoWidth) return;
+  var c = document.createElement('canvas');
+  c.width = v.videoWidth;
+  c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v, 0, 0);
+  var data = c.toDataURL('image/jpeg', 0.7);
+  var gal = JSON.parse(localStorage.getItem('moreta_gallery') || '[]');
+  gal.unshift({t: Date.now(), d: data});
+  if(gal.length > 30) gal = gal.slice(0, 30);
+  localStorage.setItem('moreta_gallery', JSON.stringify(gal));
+  alert('Foto disimpan ke Galeri');
+}
+
+/* ==================== APP: GALLERY ==================== */
+function renderGallery(b){
+  b.innerHTML = '<div class="gallery" id="gal-root"></div>';
+  galDraw();
+}
+function galDraw(){
+  var list = JSON.parse(localStorage.getItem('moreta_gallery') || '[]');
+  var el = document.getElementById('gal-root');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="empty">Belum ada foto.<br>Buka Kamera → tap tombol putih.</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(g, i){
+    return '<div class="ph">' +
+      '<img src="' + g.d + '">' +
+      '<button class="del" onclick="galDel(' + i + ')">×</button>' +
+      '</div>';
+  }).join('');
+}
+function galDel(i){
+  var list = JSON.parse(localStorage.getItem('moreta_gallery') || '[]');
+  list.splice(i, 1);
+  localStorage.setItem('moreta_gallery', JSON.stringify(list));
+  galDraw();
+}
+
+/* ==================== APP: FILES ==================== */
+function renderFiles(b){
+  b.innerHTML = '<div class="files" id="f-root"></div>';
+  fileDraw();
+}
+function fileDraw(){
+  var el = document.getElementById('f-root');
+  if(!el) return;
+  var items = [];
+  Object.keys(localStorage).forEach(function(k){
+    if(k.indexOf('moreta_') === 0){
+      var v = localStorage.getItem(k);
+      items.push({k: k, size: v.length});
+    }
+  });
+  if(!items.length){ el.innerHTML = '<div class="center" style="padding:40px 0">Kosong</div>'; return; }
+  el.innerHTML = items.map(function(it){
+    return '<div class="row">' +
+      '<span class="name">' + it.k + '</span>' +
+      '<span class="size">' + fmtSize(it.size) + '</span>' +
+      '<button class="del" onclick="fileDel(\'' + it.k + '\')">🗑</button>' +
+      '</div>';
+  }).join('');
+}
+function fileDel(k){
+  if(!confirm('Hapus ' + k + '?')) return;
+  localStorage.removeItem(k);
+  fileDraw();
+}
+function fmtSize(n){
+  if(n < 1024) return n + ' B';
+  if(n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+  return (n/1024/1024).toFixed(2) + ' MB';
+}
+
+/* ==================== APP: STOPWATCH ==================== */
+var _sw = {t: 0, running: false, laps: [], int: null, start: 0};
+function renderStopwatch(b){
+  b.innerHTML =
+    '<div class="stopwatch">' +
+    '<div class="time" id="sw-time">00:00.00</div>' +
+    '<div class="btn-row">' +
+    '<button class="start" id="sw-btn" onclick="swToggle()">▶ Mulai</button>' +
+    '<button class="reset" onclick="swReset()">↺ Reset</button>' +
+    '</div>' +
+    '<div class="btn-row"><button class="reset" onclick="swLap()">Lap</button></div>' +
+    '<div class="laps" id="sw-laps"></div>' +
+    '</div>';
+  swDraw();
+}
+function swDraw(){
+  var el = document.getElementById('sw-time');
+  if(!el) return;
+  el.textContent = swFmt(_sw.t);
+  var l = document.getElementById('sw-laps');
+  if(l){
+    l.innerHTML = _sw.laps.map(function(x, i){
+      return '<div class="lap"><span>#' + (i+1) + '</span><span>' + swFmt(x) + '</span></div>';
+    }).join('');
+  }
+}
+function swFmt(ms){
+  var m = Math.floor(ms/60000);
+  var s = Math.floor((ms%60000)/1000);
+  var c = Math.floor((ms%1000)/10);
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0') + '.' + String(c).padStart(2,'0');
+}
+function swToggle(){
+  var btn = document.getElementById('sw-btn');
+  if(_sw.running){
+    _sw.running = false;
+    clearInterval(_sw.int);
+    if(btn){ btn.textContent = '▶ Mulai'; btn.className = 'start'; }
+  } else {
+    _sw.running = true;
+    _sw.start = Date.now() - _sw.t;
+    _sw.int = setInterval(function(){
+      _sw.t = Date.now() - _sw.start;
+      swDraw();
+    }, 30);
+    if(btn){ btn.textContent = '⏸ Stop'; btn.className = 'stop'; }
+  }
+}
+function swReset(){
+  _sw.running = false;
+  clearInterval(_sw.int);
+  _sw.t = 0; _sw.laps = [];
+  var btn = document.getElementById('sw-btn');
+  if(btn){ btn.textContent = '▶ Mulai'; btn.className = 'start'; }
+  swDraw();
+}
+function swLap(){
+  if(_sw.t > 0) _sw.laps.unshift(_sw.t);
+  swDraw();
+}
+
+/* ==================== APP: TIMER ==================== */
+var _tm = {total: 0, remain: 0, int: null};
+function renderTimer(b){
+  b.innerHTML =
+    '<div class="timer">' +
+    '<div class="time" id="tm-time">00:00</div>' +
+    '<div class="row">' +
+    '<input id="tm-m" type="number" value="1" min="0" max="99"> : ' +
+    '<input id="tm-s" type="number" value="0" min="0" max="59">' +
+    '</div>' +
+    '<div style="color:var(--dim);font-size:12px;margin-bottom:20px">menit : detik</div>' +
+    '<div class="btns">' +
+    '<button class="start" onclick="tmStart()">▶ Mulai</button>' +
+    '<button class="stop" onclick="tmStop()">⏸ Stop</button>' +
+    '</div>' +
+    '</div>';
+  tmDraw();
+}
+function tmDraw(){
+  var el = document.getElementById('tm-time');
+  if(!el) return;
+  var s = _tm.remain;
+  el.textContent = String(Math.floor(s/60)).padStart(2,'0') + ':' +
+                   String(s%60).padStart(2,'0');
+}
+function tmStart(){
+  clearInterval(_tm.int);
+  var m = parseInt(document.getElementById('tm-m').value) || 0;
+  var s = parseInt(document.getElementById('tm-s').value) || 0;
+  _tm.remain = m*60 + s;
+  if(_tm.remain <= 0) return;
+  _tm.int = setInterval(function(){
+    _tm.remain--;
+    tmDraw();
+    if(_tm.remain <= 0){
+      clearInterval(_tm.int);
+      try { new AudioContext(); } catch(e){}
+      alert('Waktu habis!');
+    }
+  }, 1000);
+}
+function tmStop(){
+  clearInterval(_tm.int);
+}
+
+/* ==================== APP: MUSIC ==================== */
+function renderMusic(b){
+  var notes = ['C','D','E','F','G','A','B','C#','D#','F#','G#','A#'];
+  var freq = {C:261.63, D:293.66, E:329.63, F:349.23, G:392, A:440, B:493.88,
+              'C#':277.18, 'D#':311.13, 'F#':369.99, 'G#':415.3, 'A#':466.16};
+  b.innerHTML =
+    '<div class="music">' +
+    '<div class="art">🎵</div>' +
+    '<h3>Mini Piano</h3>' +
+    '<div class="sub">Tap untuk main nada</div>' +
+    '<div class="keys">' +
+    notes.map(function(n){
+      return '<div class="key' + (n.includes('#') ? ' hi' : '') +
+             '" onclick="mPlay(' + freq[n] + ')">' + n + '</div>';
+    }).join('') +
+    '</div>' +
+    '</div>';
+}
+function mPlay(f){
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.frequency.value = f;
+    o.type = 'sine';
+    g.gain.value = 0.15;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    o.stop(ctx.currentTime + 0.5);
+  } catch(e){}
+}
+
+/* ==================== APP: SETTINGS ==================== */
+function renderSettings(b){
+  var wall = localStorage.getItem('moreta_wall') || 'blue';
+  b.innerHTML =
+    '<div class="settings">' +
+    '<div class="sec">Tampilan</div>' +
+    '<div class="row"><span>Wallpaper</span>' +
+    '<select id="st-wall" style="background:#1a2538;color:#fff;border:0;padding:6px 10px;border-radius:8px" onchange="stWall(this.value)">' +
+    '<option value="blue"' + (wall==='blue'?' selected':'') + '>Biru (default)</option>' +
+    '<option value="dark"' + (wall==='dark'?' selected':'') + '>Gelap</option>' +
+    '<option value="green"' + (wall==='green'?' selected':'') + '>Hijau</option>' +
+    '<option value="purple"' + (wall==='purple'?' selected':'') + '>Ungu</option>' +
+    '</select></div>' +
+    '<div class="sec">Sistem</div>' +
+    '<div class="row"><span>Notifikasi</span>' +
+    '<div class="sw on" onclick="this.classList.toggle(\'on\')"></div></div>' +
+    '<div class="row"><span>Getar</span>' +
+    '<div class="sw" onclick="this.classList.toggle(\'on\')"></div></div>' +
+    '<div class="row"><span>Mode Gelap</span>' +
+    '<div class="sw on" onclick="this.classList.toggle(\'on\')"></div></div>' +
+    '<div class="sec">Data</div>' +
+    '<div class="row"><span>Hapus semua catatan</span>' +
+    '<button class="btn red" style="padding:8px 14px" onclick="stWipe(\'moreta_notes\')">Hapus</button></div>' +
+    '<div class="row"><span>Hapus semua foto</span>' +
+    '<button class="btn red" style="padding:8px 14px" onclick="stWipe(\'moreta_gallery\')">Hapus</button></div>' +
+    '<div class="about">' +
+    '<b>MORETA PHONE</b>' +
+    'Versi 1.0.0<br>' +
+    'Build dengan GitHub Actions<br>' +
+    '© 2026 MORETA-09' +
+    '</div>' +
+    '</div>';
+}
+function stWall(v){
+  var gradients = {
+    blue: 'linear-gradient(160deg,#0a1a35 0%,#040810 60%,#000 100%)',
+    dark: 'linear-gradient(160deg,#1a1a1a 0%,#000 100%)',
+    green: 'linear-gradient(160deg,#052e16 0%,#020617 60%,#000 100%)',
+    purple: 'linear-gradient(160deg,#2e1065 0%,#1e1b4b 60%,#000 100%)'
+  };
+  document.getElementById('home').style.background = gradients[v] || gradients.blue;
+  document.getElementById('lock').style.background = gradients[v] || gradients.blue;
+  localStorage.setItem('moreta_wall', v);
+}
+function stWipe(k){
+  if(!confirm('Hapus semua data ' + k + '?')) return;
+  localStorage.removeItem(k);
+  alert('Data dihapus');
+}
+
+/* ==================== APP: INFO ==================== */
+function renderInfo(b){
+  var items = [];
+  Object.keys(localStorage).forEach(function(k){
+    if(k.indexOf('moreta_') === 0) items.push(k);
+  });
+  var totalSize = 0;
+  items.forEach(function(k){ totalSize += (localStorage.getItem(k)||'').length; });
+  b.innerHTML =
+    '<div class="settings">' +
+    '<div class="sec">Perangkat</div>' +
+    '<div class="row"><span>Nama</span><b>MORETA PHONE</b></div>' +
+    '<div class="row"><span>Platform</span><b>' + (navigator.platform || 'Android') + '</b></div>' +
+    '<div class="row"><span>Layar</span><b>' + screen.width + '×' + screen.height + '</b></div>' +
+    '<div class="row"><span>Bahasa</span><b>' + (navigator.language || 'id') + '</b></div>' +
+    '<div class="row"><span>Cores</span><b>' + (navigator.hardwareConcurrency || '?') + '</b></div>' +
+    '<div class="sec">Penyimpanan Lokal</div>' +
+    '<div class="row"><span>Jumlah item</span><b>' + items.length + '</b></div>' +
+    '<div class="row"><span>Ukuran</span><b>' + fmtSize(totalSize) + '</b></div>' +
+    '<div class="sec">Tentang</div>' +
+    '<div class="about">' +
+    '<b>MORETA PHONE v1.0</b>' +
+    'Dibangun dengan HTML + GitHub Actions<br>' +
+    'Tidak ada koneksi internet yang digunakan<br>' +
+    'Semua data tersimpan lokal di perangkat' +
+    '</div>' +
+    '</div>';
+}
+
+/* ==================== UTILITY ==================== */
+function esc(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* Apply saved wallpaper */
+(function(){
+  var w = localStorage.getItem('moreta_wall');
+  if(w && typeof stWall === 'function'){
+    setTimeout(function(){ stWall(w); }, 100);
+  }
+})();
+</script>
 </body>
-</html>
+  </html>
